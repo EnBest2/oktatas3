@@ -4,8 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Oktatási App</title>
+
+  <!-- Stílus és ikon -->
   <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="icon.png">
+
+  <!-- Manifest meghívása -->
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#000000">
 </head>
 <body>
@@ -13,11 +18,14 @@
     <button onclick="selectCategory('tortenelem')">Történelem</button>
     <button onclick="selectCategory('magyar')">Magyar</button>
     <button onclick="selectCategory('nyelvtan')">Nyelvtan</button>
+    
     <input type="file" id="fileInput" />
     <button onclick="handleUpload()">PDF feltöltése</button>
+
     <div class="progress-container">
       <div id="progressBar" class="progress-bar"></div>
     </div>
+
     <div id="fileList" class="file-list"></div>
   </div>
 
