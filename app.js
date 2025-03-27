@@ -1,7 +1,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
 const SUPABASE_URL = 'https://ejrucgtmgiwpfexbvwxa.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqcnVjZ3RtZ2l3cGZleGJ2d3hhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwNzEzMTYsImV4cCI6MjA1ODY0NzMxNn0.1J_eWcCSeJLdSNDDLNksr6TaQc3wCHKBRVc3a5pTnJQ';
+const SUPABASE_KEY = 'eyJhbGciOiJI...TnJQ'; // Használhatod a teljes kulcsod
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let selectedCategory = '';
@@ -14,13 +14,13 @@ function sanitizeFileName(filename) {
     .toLowerCase();
 }
 
-window.selectCategory = function(category) {
+window.selectCategory = function (category) {
   selectedCategory = category;
   alert('Kategória: ' + category);
   listFiles();
 }
 
-window.handleUpload = async function() {
+window.handleUpload = async function () {
   const fileInput = document.getElementById('fileInput');
   const file = fileInput.files[0];
   const progressBar = document.getElementById('progressBar');
@@ -57,15 +57,31 @@ window.handleUpload = async function() {
   reader.readAsArrayBuffer(file);
 }
 
+window.deleteFile = async function (fileName) {
+  const confirmDelete = confirm(`Biztosan törlöd ezt a fájlt: ${fileName}?`);
+  if (!confirmDelete) return;
+
+  const { error } = await supabase.storage
+    .from('adatok')
+    .remove([`${selectedCategory}/${fileName}`]);
+
+  if (error) {
+    alert('Hiba törléskor: ' + error.message);
+  } else {
+    alert('Sikeres törlés!');
+    listFiles();
+  }
+}
+
 async function listFiles() {
   const list = document.getElementById('fileList');
-  const viewer = document.getElementById('pdfViewer');
   list.innerHTML = '';
-  viewer.src = '';
 
   if (!selectedCategory) return;
 
-  const { data, error } = await supabase.storage.from('adatok').list(`${selectedCategory}/`, { limit: 100 });
+  const { data, error } = await supabase.storage
+    .from('adatok')
+    .list(`${selectedCategory}/`, { limit: 100 });
 
   if (error) {
     list.innerHTML = 'Hiba a listázáskor: ' + error.message;
@@ -79,12 +95,26 @@ async function listFiles() {
 
   data.forEach(file => {
     const div = document.createElement('div');
-    div.textContent = file.name;
     div.classList.add('file-item');
-    div.onclick = async () => {
-      const { data: { publicUrl } } = supabase.storage.from('adatok').getPublicUrl(`${selectedCategory}/${file.name}`);
-      viewer.src = publicUrl;
-    };
+
+    const { data: { publicUrl } } = supabase
+      .storage
+      .from('adatok')
+      .getPublicUrl(`${selectedCategory}/${file.name}`);
+
+    const link = document.createElement('a');
+    link.href = publicUrl;
+    link.textContent = file.name;
+    link.target = '_blank';
+    link.style.color = 'white';
+
+    const del = document.createElement('button');
+    del.textContent = 'Törlés';
+    del.onclick = () => deleteFile(file.name);
+    del.classList.add('delete-btn');
+
+    div.appendChild(link);
+    div.appendChild(del);
     list.appendChild(div);
   });
 }
