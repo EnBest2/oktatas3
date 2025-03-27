@@ -1,4 +1,3 @@
-
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
 const SUPABASE_URL = 'https://ejrucgtmgiwpfexbvwxa.supabase.co';
@@ -60,8 +59,13 @@ window.handleUpload = async function() {
 
 async function listFiles() {
   const list = document.getElementById('fileList');
+  const viewer = document.getElementById('pdfViewer');
   list.innerHTML = '';
-  const { data, error } = await supabase.storage.from('adatok').list(selectedCategory + '/', { limit: 100 });
+  viewer.src = '';
+
+  if (!selectedCategory) return;
+
+  const { data, error } = await supabase.storage.from('adatok').list(`${selectedCategory}/`, { limit: 100 });
 
   if (error) {
     list.innerHTML = 'Hiba a listázáskor: ' + error.message;
@@ -76,6 +80,11 @@ async function listFiles() {
   data.forEach(file => {
     const div = document.createElement('div');
     div.textContent = file.name;
+    div.classList.add('file-item');
+    div.onclick = async () => {
+      const { data: { publicUrl } } = supabase.storage.from('adatok').getPublicUrl(`${selectedCategory}/${file.name}`);
+      viewer.src = publicUrl;
+    };
     list.appendChild(div);
   });
 }
