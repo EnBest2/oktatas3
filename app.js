@@ -14,17 +14,16 @@ function sanitizeFileName(filename) {
     .toLowerCase();
 }
 
-window.selectCategory = function (category) {
+window.selectCategory = function(category) {
   selectedCategory = category;
   alert('Kategória: ' + category);
   listFiles();
-};
+}
 
-window.handleUpload = async function () {
+window.handleUpload = async function() {
   const fileInput = document.getElementById('fileInput');
   const file = fileInput.files[0];
   const progressBar = document.getElementById('progressBar');
-
   if (!file || !selectedCategory) {
     alert('Válassz kategóriát és fájlt!');
     return;
@@ -32,8 +31,8 @@ window.handleUpload = async function () {
 
   const safeName = sanitizeFileName(file.name);
   progressBar.style.width = "0%";
-
   const reader = new FileReader();
+
   reader.onprogress = (e) => {
     if (e.lengthComputable) {
       const percent = (e.loaded / e.total) * 100;
@@ -56,59 +55,52 @@ window.handleUpload = async function () {
   };
 
   reader.readAsArrayBuffer(file);
-};
+}
+
+window.deleteFile = async function(fileName) {
+  if (!selectedCategory) return;
+  const { error } = await supabase.storage
+    .from('adatok')
+    .remove([`${selectedCategory}/${fileName}`]);
+
+  if (error) {
+    alert('Törlési hiba: ' + error.message);
+  } else {
+    listFiles();
+  }
+}
 
 async function listFiles() {
   const list = document.getElementById('fileList');
   list.innerHTML = '';
+
   if (!selectedCategory) return;
 
-  const { data, error } = await supabase
-    .storage
-    .from('adatok')
-    .list(`${selectedCategory}/`, { limit: 100 });
+  const { data, error } = await supabase.storage.from('adatok').list(`${selectedCategory}/`, { limit: 100 });
 
   if (error) {
     list.innerHTML = 'Hiba a listázáskor: ' + error.message;
     return;
   }
 
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     list.innerHTML = '<i>Nincs fájl ebben a kategóriában.</i>';
     return;
   }
 
   data.forEach(file => {
     const div = document.createElement('div');
-    div.className = 'file-item';
+    div.classList.add('file-item');
 
     const link = document.createElement('a');
-    const { data: { publicUrl } } = supabase
-      .storage
-      .from('adatok')
-      .getPublicUrl(`${selectedCategory}/${file.name}`);
-
+    const { data: { publicUrl } } = supabase.storage.from('adatok').getPublicUrl(`${selectedCategory}/${file.name}`);
     link.href = publicUrl;
-    link.target = '_blank';
+    link.target = "_blank";
     link.textContent = file.name;
-    link.style.color = 'white';
-    link.style.marginRight = '10px';
 
     const delBtn = document.createElement('button');
-    delBtn.textContent = 'Törlés';
-    delBtn.onclick = async () => {
-      const { error } = await supabase
-        .storage
-        .from('adatok')
-        .remove([`${selectedCategory}/${file.name}`]);
-
-      if (error) {
-        alert('Hiba törléskor: ' + error.message);
-      } else {
-        alert('Törölve: ' + file.name);
-        listFiles();
-      }
-    };
+    delBtn.textContent = "Törlés";
+    delBtn.onclick = () => deleteFile(file.name);
 
     div.appendChild(link);
     div.appendChild(delBtn);
