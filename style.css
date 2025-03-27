@@ -5,71 +5,88 @@ body {
   background-color: #111;
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
+  align-items: start;
+  min-height: 100vh;
+  color: white;
 }
 
 .menu {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.6);
   padding: 30px;
   border-radius: 12px;
   width: 90%;
-  max-width: 400px;
-  box-sizing: border-box;
+  max-width: 500px;
+  margin-top: 40px;
 }
 
 button {
-  padding: 15px;
-  font-size: 1rem;
+  padding: 15px 30px;
+  font-size: 1.2rem;
   border: none;
   border-radius: 8px;
-  background-color: #222;
+  background-color: #1f1f1f;
   color: white;
   transition: background-color 0.3s ease;
 }
 
 button:hover {
-  background-color: #444;
+  background-color: #333;
   cursor: pointer;
 }
 
 .progress-container {
   width: 100%;
-  height: 6px;
   background-color: #333;
-  border-radius: 4px;
+  height: 6px;
+  border-radius: 5px;
   overflow: hidden;
 }
 
 .progress-bar {
   height: 100%;
-  background-color: #00ff99;
   width: 0%;
+  background-color: #00ff7f;
   transition: width 0.3s;
 }
 
 .file-list {
-  margin-top: 10px;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 10px;
 }
 
 .file-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 8px;
+  background-color: #222;
+  padding: 10px;
+  border-radius: 6px;
 }
 
-.delete-btn {
-  margin-left: 10px;
-  padding: 4px 10px;
-  background-color: #800;
-  border: none;
-  border-radius: 6px;
+.file-item a {
   color: white;
+  text-decoration: underline;
+  word-break: break-word;
+  flex: 1;
+}
+
+.file-item button {
+  margin-left: 10px;
+  background-color: #444;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+}
+
+.file-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.file-list::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
 }
