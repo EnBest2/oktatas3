@@ -1,7 +1,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
 const SUPABASE_URL = 'https://ejrucgtmgiwpfexbvwxa.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJI...TnJQ'; // Használhatod a teljes kulcsod
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqcnVjZ3RtZ2l3cGZleGJ2d3hhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwNzEzMTYsImV4cCI6MjA1ODY0NzMxNn0.1J_eWcCSeJLdSNDDLNksr6TaQc3wCHKBRVc3a5pTnJQ';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let selectedCategory = '';
@@ -18,12 +18,13 @@ window.selectCategory = function (category) {
   selectedCategory = category;
   alert('Kategória: ' + category);
   listFiles();
-}
+};
 
 window.handleUpload = async function () {
   const fileInput = document.getElementById('fileInput');
   const file = fileInput.files[0];
   const progressBar = document.getElementById('progressBar');
+
   if (!file || !selectedCategory) {
     alert('Válassz kategóriát és fájlt!');
     return;
@@ -31,8 +32,8 @@ window.handleUpload = async function () {
 
   const safeName = sanitizeFileName(file.name);
   progressBar.style.width = "0%";
-  const reader = new FileReader();
 
+  const reader = new FileReader();
   reader.onprogress = (e) => {
     if (e.lengthComputable) {
       const percent = (e.loaded / e.total) * 100;
@@ -55,31 +56,15 @@ window.handleUpload = async function () {
   };
 
   reader.readAsArrayBuffer(file);
-}
-
-window.deleteFile = async function (fileName) {
-  const confirmDelete = confirm(`Biztosan törlöd ezt a fájlt: ${fileName}?`);
-  if (!confirmDelete) return;
-
-  const { error } = await supabase.storage
-    .from('adatok')
-    .remove([`${selectedCategory}/${fileName}`]);
-
-  if (error) {
-    alert('Hiba törléskor: ' + error.message);
-  } else {
-    alert('Sikeres törlés!');
-    listFiles();
-  }
-}
+};
 
 async function listFiles() {
   const list = document.getElementById('fileList');
   list.innerHTML = '';
-
   if (!selectedCategory) return;
 
-  const { data, error } = await supabase.storage
+  const { data, error } = await supabase
+    .storage
     .from('adatok')
     .list(`${selectedCategory}/`, { limit: 100 });
 
@@ -95,26 +80,38 @@ async function listFiles() {
 
   data.forEach(file => {
     const div = document.createElement('div');
-    div.classList.add('file-item');
+    div.className = 'file-item';
 
+    const link = document.createElement('a');
     const { data: { publicUrl } } = supabase
       .storage
       .from('adatok')
       .getPublicUrl(`${selectedCategory}/${file.name}`);
 
-    const link = document.createElement('a');
     link.href = publicUrl;
-    link.textContent = file.name;
     link.target = '_blank';
+    link.textContent = file.name;
     link.style.color = 'white';
+    link.style.marginRight = '10px';
 
-    const del = document.createElement('button');
-    del.textContent = 'Törlés';
-    del.onclick = () => deleteFile(file.name);
-    del.classList.add('delete-btn');
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Törlés';
+    delBtn.onclick = async () => {
+      const { error } = await supabase
+        .storage
+        .from('adatok')
+        .remove([`${selectedCategory}/${file.name}`]);
+
+      if (error) {
+        alert('Hiba törléskor: ' + error.message);
+      } else {
+        alert('Törölve: ' + file.name);
+        listFiles();
+      }
+    };
 
     div.appendChild(link);
-    div.appendChild(del);
+    div.appendChild(delBtn);
     list.appendChild(div);
   });
 }
